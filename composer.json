@@ -1,0 +1,23 @@
+{
+  "name": "vendor_name/gutenberg-rdf-parser",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "philippe",
+      "email": "email@example.com"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Gutenberg\\": "src/"
+    }
+  },
+  "require": {
+    "ext-dom": "*",
+    "ext-json": "*",
+    "symfony/dom-crawler": "7.0.*",
+    "phpunit/phpunit": "11.0.9"
+  }
+}
