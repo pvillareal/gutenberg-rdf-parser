@@ -24,6 +24,7 @@ class GutenbergRDFParser
         $doc->registerNamespace('pgterms', "http://www.gutenberg.org/2009/pgterms/");
         $doc->registerNamespace('cc', "http://web.resource.org/cc/");
         $doc->registerNamespace('dcam', "http://purl.org/dc/dcam/");
+        $doc->registerNamespace('m', 'http://search.yahoo.com/mrss/');
         $book->title = $doc->filterXPath("//dcterms:title")->text();
         $book->authors = $this->getAuthors($doc);
         $book->compilers = $this->getCompilers($doc);
@@ -33,6 +34,9 @@ class GutenbergRDFParser
         $book->releaseDate = $doc->filterXPath("//dcterms:issued")->text("");
         $book->contents = $doc->filterXPath("//dcterms:tableOfContents")->text("");
         $book->downloads = $doc->filterXPath("//pgterms:downloads")->text("");
+        $groups = $this->getGroups($doc);
+        $book->subjects = $groups['subjects'];
+        $book->locc = $groups['classifications'];
         return $book;
     }
 
@@ -74,6 +78,27 @@ class GutenbergRDFParser
             });
             return $compiler;
         });
+    }
+
+    private function getGroups(Crawler $doc) : array
+    {
+        $groups = [];
+        $list = $doc->filterXPath("//dcterms:subject")->each(function (Crawler $parent) : array {
+            $type = $parent->filterXPath("node()/rdf:Description/dcam:memberOf")->attr("rdf:resource");
+            $value = $parent->filterXPath("node()/rdf:Description/rdf:value")->text();
+            return [$type, $value];
+        });
+        foreach ($list as $item) {
+            $type = $item[0];
+            $value = $item[1];
+            if ($type === "http://purl.org/dc/terms/LCSH") {
+                $groups["subjects"][] = $value;
+            }
+            if ($type === "http://purl.org/dc/terms/LCC") {
+                $groups["classifications"][] = $value;
+            }
+        }
+        return $groups;
     }
 
 }

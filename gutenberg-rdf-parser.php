@@ -18,8 +18,8 @@ $gutenbergBook = new GutenbergRDFParser();
 //}
 //$book = $gutenbergBook(30872);
 //$book->title = "short";
-$book = $gutenbergBook(2591);
-//$book = $gutenbergBook(1);
+//$book = $gutenbergBook(2591);
+$book = $gutenbergBook(1);
 echo json_encode($book, JSON_PRETTY_PRINT);
 //var_dump($book);
 
