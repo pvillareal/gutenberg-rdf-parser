@@ -2,6 +2,8 @@
 
 namespace Gutenberg\Models;
 
+use Gutenberg\Traits\JsonSerialize;
+
 class Author implements \JsonSerializable
 {
 

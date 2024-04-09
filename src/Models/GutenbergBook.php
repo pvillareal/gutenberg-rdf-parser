@@ -1,8 +1,9 @@
 <?php
 
 namespace Gutenberg\Models;
+
+use Gutenberg\Traits\JsonSerialize;
 use JsonSerializable;
-use function PHPUnit\Framework\isEmpty;
 
 class GutenbergBook implements JsonSerializable
 {
@@ -19,6 +20,12 @@ class GutenbergBook implements JsonSerializable
     public string $credits;
     public string $contents;
     public string $downloads;
+
+    public string $rights;
+
+    public array $bookshelves;
+
+    public array $formats;
 
     use JsonSerialize;
 }

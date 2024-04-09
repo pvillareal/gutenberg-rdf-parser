@@ -4,6 +4,7 @@ namespace Gutenberg\Parser;
 
 use Gutenberg\Models\Author;
 use Gutenberg\Models\Compiler;
+use Gutenberg\Models\Format;
 use Gutenberg\Models\GutenbergBook;
 use Symfony\Component\DomCrawler\Crawler;
 
@@ -25,7 +26,7 @@ class GutenbergRDFParser
         $doc->registerNamespace('cc', "http://web.resource.org/cc/");
         $doc->registerNamespace('dcam', "http://purl.org/dc/dcam/");
         $doc->registerNamespace('m', 'http://search.yahoo.com/mrss/');
-        $book->title = $doc->filterXPath("//dcterms:title")->text();
+        $book->title = $doc->filterXPath("//dcterms:title")->text("");
         $book->authors = $this->getAuthors($doc);
         $book->compilers = $this->getCompilers($doc);
         $book->credits = $doc->filterXPath("//pgterms:marc508")->text("") ;
@@ -34,9 +35,13 @@ class GutenbergRDFParser
         $book->releaseDate = $doc->filterXPath("//dcterms:issued")->text("");
         $book->contents = $doc->filterXPath("//dcterms:tableOfContents")->text("");
         $book->downloads = $doc->filterXPath("//pgterms:downloads")->text("");
+        $book->rights = $doc->filterXPath("//dcterms:rights")->text("");
         $groups = $this->getGroups($doc);
-        $book->subjects = $groups['subjects'];
-        $book->locc = $groups['classifications'];
+        $book->subjects = $groups['subjects'] ?? [];
+        $book->locc = $groups['classifications'] ?? [];
+        $book->categories = $this->getCategories($doc);
+        $book->bookshelves = $this->getBookShelves($doc);
+        $book->formats = $this->getFormats($doc);
         return $book;
     }
 
@@ -52,9 +57,9 @@ class GutenbergRDFParser
             $matches = [];
             preg_match('((\d+)/(agents)/(\d+))', $agentAttribute, $matches);
             $author->id = $matches[3];
-            $author->name = $parent->filterXPath("node()/pgterms:agent/pgterms:name")->text();
-            $author->birthDate = $parent->filterXPath("node()/pgterms:agent/pgterms:birthdate")->text();
-            $author->deathDate = $parent->filterXPath("node()/pgterms:agent/pgterms:deathdate")->text() ?? "present";
+            $author->name = $parent->filterXPath("node()/pgterms:agent/pgterms:name")->text('');
+            $author->birthDate = $parent->filterXPath("node()/pgterms:agent/pgterms:birthdate")->text('');
+            $author->deathDate = $parent->filterXPath("node()/pgterms:agent/pgterms:deathdate")->text('');
             $author->alias = $parent->filterXPath("node()/pgterms:agent/pgterms:alias")->each(function (Crawler $alias): string {
                 return $alias->text();
             });
@@ -66,13 +71,14 @@ class GutenbergRDFParser
     {
         return $doc->filterXPath("//marcrel:com")->each(function (Crawler $parent): Compiler {
             $compiler = new Compiler();
-            $agentAttribute = $parent->filterXPath("node()/pgterms:agent")->attr("rdf:about");
+            $agentAttribute = $parent->filterXPath("node()/pgterms:agent")->attr("rdf:about") ?? '';
+
             $matches = [];
             preg_match('((\d+)/(agents)/(\d+))', $agentAttribute, $matches);
             $compiler->id = $matches[3];
             $compiler->name = $parent->filterXPath("node()/pgterms:agent/pgterms:name")->text();
-            $compiler->birthDate = $parent->filterXPath("node()/pgterms:agent/pgterms:birthdate")->text();
-            $compiler->deathDate = $parent->filterXPath("node()/pgterms:agent/pgterms:deathdate")->text() ?? "present";
+            $compiler->birthDate = $parent->filterXPath("node()/pgterms:agent/pgterms:birthdate")->text('');
+            $compiler->deathDate = $parent->filterXPath("node()/pgterms:agent/pgterms:deathdate")->text('');
             $compiler->alias = $parent->filterXPath("node()/pgterms:agent/pgterms:alias")->each(function (Crawler $alias): string {
                 return $alias->text();
             });
@@ -99,6 +105,32 @@ class GutenbergRDFParser
             }
         }
         return $groups;
+    }
+
+    private function getCategories(Crawler $doc) : array
+    {
+        return $doc->filterXPath('//dcterms:type')->each(function (Crawler $parent) : string {
+            return $parent->filterXPath('node()/rdf:Description/rdf:value')->text();
+        }) ?? [];
+    }
+
+    private function getBookShelves(Crawler $doc) : array
+    {
+        return $doc->filterXPath('//pgterms:bookshelf')->each(function (Crawler $parent) : string {
+            return $parent->filterXPath('node()/rdf:Description/rdf:value')->text();
+        }) ?? [];
+    }
+
+    private function getFormats(Crawler $doc) : array
+    {
+        return $doc->filterXPath('//dcterms:hasFormat')->each(function (Crawler $parent) : Format {
+            $bookFormat = new Format();
+            $bookFormat->fileUrl = $parent->filterXPath('node()/pgterms:file')->attr('rdf:about');
+            $bookFormat->isFormatOf = $parent->filterXPath('node()/pgterms:file/dcterms:isFormatOf')->attr('rdf:resource');
+            $bookFormat->modifiedDate = $parent->filterXPath('node()/pgterms:file/dcterms:modified')->text();
+            $bookFormat->httpHeaderFormat = $parent->filterXPath('node()/pgterms:file/dcterms:format/rdf:Description/rdf:value')->text();
+            return $bookFormat;
+        }) ?? [];
     }
 
 }

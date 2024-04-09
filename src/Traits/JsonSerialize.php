@@ -1,6 +1,6 @@
 <?php
 
-namespace Gutenberg\Models;
+namespace Gutenberg\Traits;
 
 trait JsonSerialize
 {
