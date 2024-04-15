@@ -12,6 +12,9 @@ trait JsonSerialize
             if (empty($value)) {
                 unset($json[$key]);
             }
+            if ($value instanceof \UnitEnum) {
+                $json[$key] = $value->value;
+            }
         }
         return $json;
     }

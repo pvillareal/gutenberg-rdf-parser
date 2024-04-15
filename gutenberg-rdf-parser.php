@@ -1,7 +1,16 @@
 <?php
 
-include "./vendor/autoload.php";
+include "./bootstrap.php";
 
+/** @global \Laminas\Config\Config $config */
+
+use Gutenberg\CloudKit\Author;
+use Gutenberg\CloudKit\Enums\ModifyOperationTypes;
+use Gutenberg\CloudKit\Enums\OperationUri;
+use Gutenberg\CloudKit\ModifyOperation;
+use Gutenberg\CloudKit\Operation;
+use Gutenberg\CloudKit\Operations;
+use Gutenberg\CloudKit\Service;
 use Gutenberg\Parser\GutenbergRDFParser;
 
 //TODO: gracefully catch this and note all files that fail.
@@ -29,7 +38,10 @@ function writeFile(float|int $file, array $books): void
     fwrite($fp, json_encode($books, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     fclose($fp);
 }
-
+$modifyService = new ModifyOperation($config['services']['cloudkit']['container'], OperationUri::MODIFY_RECORDS);
+$modifyService->setPrivateKey($config['services']['cloudkit']['private_key']);
+$modifyService->setKeyId($config['services']['cloudkit']['key_id']);
+$operations = new Operations();
 foreach ($folders as $folder) {
     if (!is_numeric($folder) || in_array((int) $folder, $ignored)) {
         continue;
@@ -37,6 +49,27 @@ foreach ($folders as $folder) {
     $batch++;
     $book = $parser((int) $folder);
     $books[] = $book;
+    if (!empty($book->authors)) {
+        foreach ($book->authors as $author) {
+            /** @var \Gutenberg\Models\Author $author */
+            $operation = new Operation(ModifyOperationTypes::FORCE_UPDATE);
+            $operation->setRecord(Author::recordFromJson($author->jsonSerialize()));
+            $operations->addOperation($operation);
+        }
+        if ($operations->isMax()) {
+            $modifyService->setRequestBody(json_encode($operations->jsonSerialize()));
+            try {
+                $url = $modifyService->getServiceUrl();
+                $body = $modifyService->getRequestBody();
+                $headers = $modifyService->getHeaders();
+                Service::post($url, $body, $headers);
+            } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+                echo $e->getCode();
+                echo $e->getMessage();
+            }
+            $operations->clear();
+        }
+    }
     if ($batch === $batchSize) {
         $file = $batch * $batchNumber;
         writeFile($file, $books);

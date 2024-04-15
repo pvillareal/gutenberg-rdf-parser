@@ -17,7 +17,10 @@
   "require": {
     "ext-dom": "*",
     "ext-json": "*",
+    "guzzlehttp/guzzle": "^7.0",
     "symfony/dom-crawler": "7.0.*",
-    "phpunit/phpunit": "11.0.9"
+    "phpunit/phpunit": "11.0.9",
+    "laminas/laminas-config": "^3.9.0",
+    "ext-openssl": "*"
   }
 }
