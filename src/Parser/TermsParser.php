@@ -15,7 +15,7 @@ class TermsParser
     {
     }
 
-    public function __invoke()
+    public function __invoke(): void
     {
         $manager = $this->manager;
         $doc = new Crawler(file_get_contents("https://www.gutenberg.org/ebooks/"));

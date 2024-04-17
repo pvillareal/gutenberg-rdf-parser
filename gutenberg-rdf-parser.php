@@ -2,15 +2,15 @@
 
 include "./bootstrap.php";
 
-/** @global \Laminas\Config\Config $config */
+/** @global DI\Container $container */
 
 use Gutenberg\CloudKit\Author;
 use Gutenberg\CloudKit\Enums\ModifyOperationTypes;
 use Gutenberg\CloudKit\Enums\OperationUri;
-use Gutenberg\CloudKit\ModifyOperation;
 use Gutenberg\CloudKit\Operation;
 use Gutenberg\CloudKit\Operations;
-use Gutenberg\CloudKit\Service;
+use Gutenberg\CloudKit\ServerService;
+use Gutenberg\Managers\AuthorManager;
 use Gutenberg\Parser\GutenbergRDFParser;
 
 //TODO: gracefully catch this and note all files that fail.
@@ -38,10 +38,12 @@ function writeFile(float|int $file, array $books): void
     fwrite($fp, json_encode($books, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     fclose($fp);
 }
-$modifyService = new ModifyOperation($config['services']['cloudkit']['container'], OperationUri::MODIFY_RECORDS);
-$modifyService->setPrivateKey($config['services']['cloudkit']['private_key']);
-$modifyService->setKeyId($config['services']['cloudkit']['key_id']);
+$start = new DateTime();
 $operations = new Operations();
+/** @var ServerService $service */
+$service = $container->get(ServerService::class);
+/** @var AuthorManager $authorManager */
+$authorManager = $container->get(AuthorManager::class);
 foreach ($folders as $folder) {
     if (!is_numeric($folder) || in_array((int) $folder, $ignored)) {
         continue;
@@ -52,30 +54,25 @@ foreach ($folders as $folder) {
     if (!empty($book->authors)) {
         foreach ($book->authors as $author) {
             /** @var \Gutenberg\Models\Author $author */
-            $operation = new Operation(ModifyOperationTypes::FORCE_UPDATE);
-            $operation->setRecord(Author::recordFromJson($author->jsonSerialize()));
-            $operations->addOperation($operation);
+            $authorManager->upsert($author);
+//            $operation = new Operation(ModifyOperationTypes::FORCE_UPDATE);
+//            $operation->setRecord(Author::recordFromJson($author->jsonSerialize()));
+//            $operations->addOperation($operation);
         }
-        if ($operations->isMax()) {
-            $modifyService->setRequestBody(json_encode($operations->jsonSerialize()));
-            try {
-                $url = $modifyService->getServiceUrl();
-                $body = $modifyService->getRequestBody();
-                $headers = $modifyService->getHeaders();
-                Service::post($url, $body, $headers);
-            } catch (\GuzzleHttp\Exception\GuzzleException $e) {
-                echo $e->getCode();
-                echo $e->getMessage();
-            }
-            $operations->clear();
-        }
+//        if ($operations->isMax()) {
+//            $service->post(OperationUri::MODIFY_RECORDS, json_encode($operations->jsonSerialize()));
+//            $operations->clear();
+//        }
     }
     if ($batch === $batchSize) {
         $file = $batch * $batchNumber;
-        writeFile($file, $books);
+//        writeFile($file, $books);
         $books = [];
         $batch = 0;
         $batchNumber++;
     }
 }
 
+$end = new DateTime();
+$diff = $start->diff($end);
+echo "Process time: " . $diff->format( '%H:%I:%S');

@@ -3,20 +3,27 @@
 
 use DI\Container;
 use Gutenberg\Parser\Enums\Parser;
+use Gutenberg\Parser\TermsParser;
+use Gutenberg\Parser\TestCloudkit;
 
 include "./bootstrap.php";
 
 /** @global Container $container */
 
 
-$options = getopt("p::");
+$options = getopt("p:", ["process:"]);
 
-$process = $options["p"] ?? "all";
+$process = strtolower($options["p"] ?? "none");
 
-if (strtolower($process) === "all") {
-    $container->get(Parser::TERMS->value);
+echo "processing $process" . PHP_EOL;
+if ($process === "all") {
+    $container->call(TermsParser::class);
 }
 
-if (strtolower($process) === "terms") {
-    $container->get(Parser::TERMS->value);
+if ($process === "terms") {
+    $container->call(TermsParser::class);
+}
+
+if ($process === "test") {
+
 }

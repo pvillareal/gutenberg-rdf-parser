@@ -12,6 +12,12 @@ include "./vendor/autoload.php";
 class GutenbergRDFParser
 {
 
+    public function __construct(
+
+    )
+    {
+    }
+
     public function __invoke(int $folder) : GutenbergBook
     {
         $id = $folder;
@@ -27,6 +33,7 @@ class GutenbergRDFParser
         $doc->registerNamespace('dcam', "http://purl.org/dc/dcam/");
         $doc->registerNamespace('m', 'http://search.yahoo.com/mrss/');
         $book->title = $doc->filterXPath("//dcterms:title")->text("");
+        $book->alternativeTitle = $doc->filterXPath("//dcterms:alternative")->text("");
         $book->authors = $this->getAuthors($doc);
         $book->compilers = $this->getCompilers($doc);
         $book->credits = $doc->filterXPath("//pgterms:marc508")->text("") ;

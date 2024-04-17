@@ -20,12 +20,10 @@ class GutenbergBook implements JsonSerializable
     public string $credits;
     public string $contents;
     public string $downloads;
-
     public string $rights;
-
     public array $bookshelves;
-
     public array $formats;
+    public string $alternativeTitle;
 
     use JsonSerialize;
 }
