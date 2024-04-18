@@ -7,7 +7,6 @@ use Gutenberg\CloudKit\Enums\CKEnvironments;
 use Gutenberg\CloudKit\Enums\DatabaseTypes;
 use GuzzleHttp\Client;
 use Psr\Container\ContainerInterface;
-use Psr\Http\Client\ClientInterface;
 
 return array(
     Connection::class => DI\factory(function (ContainerInterface $c) {
@@ -30,5 +29,5 @@ return array(
             DatabaseTypes::PUBLIC,
             new Client()
         );
-    })
+    }),
 );

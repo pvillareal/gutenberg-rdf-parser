@@ -2,6 +2,8 @@
 
 namespace Gutenberg\Traits;
 
+use Gutenberg\Wrappers\FilteredString;
+
 trait JsonSerialize
 {
 
@@ -9,6 +11,10 @@ trait JsonSerialize
     {
         $json = get_object_vars($this);
         foreach ($json as $key => $value) {
+            if (is_string($value)) {
+                $string = new FilteredString($value);
+                $json[$key] = $string->__toString();
+            }
             if (empty($value)) {
                 unset($json[$key]);
             }

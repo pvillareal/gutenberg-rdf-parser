@@ -24,6 +24,7 @@ class GutenbergBook implements JsonSerializable
     public array $bookshelves;
     public array $formats;
     public string $alternativeTitle;
+    public string $originalPublication;
 
     use JsonSerialize;
 }

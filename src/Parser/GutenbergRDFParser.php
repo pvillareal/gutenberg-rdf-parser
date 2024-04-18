@@ -37,6 +37,7 @@ class GutenbergRDFParser
         $book->authors = $this->getAuthors($doc);
         $book->compilers = $this->getCompilers($doc);
         $book->credits = $doc->filterXPath("//pgterms:marc508")->text("") ;
+        $book->originalPublication = $doc->filterXPath("//pgterms:marc260")->text("");
         $book->notes = $doc->filterXPath("//rdf:RDF/pgterms:ebook/dcterms:description")->text("");
         $book->language = $doc->filterXPath("//dcterms:language")->text("");
         $book->releaseDate = $doc->filterXPath("//dcterms:issued")->text("");
