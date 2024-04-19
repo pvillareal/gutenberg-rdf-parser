@@ -24,7 +24,7 @@ if ($process === "terms") {
 }
 
 if ($process === "test") {
-    $book = $container->call(\Gutenberg\Parser\GutenbergRDFParser::class, ["folder" => 1]);
+    $book = $container->call(\Gutenberg\Parser\GutenbergRDFParser::class, ["folder" => 73410]);
     echo json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }
 

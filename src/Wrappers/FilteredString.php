@@ -13,6 +13,9 @@ class FilteredString
     {
         $str = $this->str;
         $str = preg_replace('(\$[a-z]|\$)', "", $str);
+        $str = str_replace("  ", " ", $str);
+        $str = preg_replace('(\s?:\s?)', ":", $str);
+        $str = preg_replace('(([a-zA-Z]):([a-zA-Z]))', '${1} : ${2}', $str);
         $str = trim($str);
         return str_replace("  ", " ", $str);
     }
