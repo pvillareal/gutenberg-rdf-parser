@@ -2,6 +2,8 @@
 
 namespace Gutenberg\Parser;
 
+use Gutenberg\Managers\AuthorManager;
+use Gutenberg\Managers\BookManager;
 use Gutenberg\Models\Author;
 use Gutenberg\Models\Compiler;
 use Gutenberg\Models\Format;
@@ -13,7 +15,6 @@ class GutenbergRDFParser
 {
 
     public function __construct(
-
     )
     {
     }

@@ -11,6 +11,8 @@ class GutenbergBook implements JsonSerializable
     public string $title;
     public string $language;
     public string $releaseDate;
+
+    /** @var Author[] $authors */
     public array $authors;
     public array $compilers;
     public array $subjects;

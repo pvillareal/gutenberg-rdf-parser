@@ -2,6 +2,10 @@
 <?php
 
 use DI\Container;
+use Gutenberg\Adapter\Database\BookAdapter;
+use Gutenberg\Middleware\MySQLSave;
+use Gutenberg\Parser\CoverParser;
+use Gutenberg\Parser\GutenbergRDFParser;
 use Gutenberg\Parser\TermsParser;
 use Gutenberg\Parser\TestCloudkit;
 
@@ -9,9 +13,8 @@ include "./bootstrap.php";
 
 /** @global Container $container */
 
-
+$start = new DateTime();
 $options = getopt("p:", ["process:"]);
-
 $process = strtolower($options["p"] ?? "none");
 
 echo "processing $process" . PHP_EOL;
@@ -23,9 +26,20 @@ if ($process === "terms") {
     $container->call(TermsParser::class);
 }
 
+if ($process === "rdf") {
+    $ignored = [56057]; // These files are not parsable at the moment
+    $folders = explode(PHP_EOL, shell_exec('ls -1 "$(pwd)/cache/epub"'));
+    foreach ($folders as $folder) {
+        if (!is_numeric($folder) || in_array((int)$folder, $ignored)) {
+            continue;
+        }
+        $book = $container->call(GutenbergRDFParser::class, ["folder" => (int) $folder]);
+        $book = $container->call(MySQLSave::class, ["gutenbergBook" => $book]);
+    }
+}
+
 if ($process === "test") {
-    $book = $container->call(\Gutenberg\Parser\GutenbergRDFParser::class, ["folder" => 73410]);
-    echo json_encode($book, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $book = $container->call(CoverParser::class, ["img" => new Imagick("./tmp/custom_cover.jpg")]);
 }
 
 if ($process === "download") {
@@ -33,3 +47,7 @@ if ($process === "download") {
     echo shell_exec('curl -o "$(pwd)/cache/rdf-files.tar.bz2" https://www.gutenberg.org/cache/epub/feeds/rdf-files.tar.bz2');
     echo shell_exec('tar -xf "$(pwd)/cache/rdf-files.tar.bz2" -C "$(pwd)"');
 }
+
+$end = new DateTime();
+$diff = $start->diff($end);
+echo PHP_EOL . "Process time: " . $diff->format( '%H:%I:%S');

@@ -23,6 +23,7 @@
     "ext-openssl": "*",
     "php-di/php-di": "7.*",
     "doctrine/dbal": "4.0.*",
-    "ext-mysqli": "*"
+    "ext-mysqli": "*",
+    "ext-imagick": "*"
   }
 }
