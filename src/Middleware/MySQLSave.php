@@ -26,7 +26,6 @@ class MySQLSave
             $this->authorManager->upsert($author);
         }
 
-
         $book = new BookAdapter($gutenbergBook);
         $this->bookManager->upsert($book);
         echo "data inserted for: {$gutenbergBook->id}" . PHP_EOL;

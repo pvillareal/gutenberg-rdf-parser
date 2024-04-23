@@ -36,21 +36,25 @@ class BookAdapter implements \JsonSerializable
 //        $mediumCover = implode("/", ['https://www.gutenberg.org/cache/epub', $book->id, "pg{$book->id}.cover.medium.jpg"]);
 //        $smallCover = implode("/", ['https://www.gutenberg.org/cache/epub', $book->id, "pg{$book->id}.cover.small.jpg"]);
 
-//        $isText = in_array('Text',$book->categories ?? []);
-//        $formats = empty($gutenbergBook->formats) ? [] : array_column($gutenbergBook->formats, null, "fileUrl");
-//        $hasMediumCover = false;
-//        $hasSmallCover = false;
-//        foreach (array_keys($formats) as $keys) {
-//            if (preg_match("(cover\.medium)", $keys) !== 0) {
-//                $hasMediumCover = true;
-//            }
-//        }
-//        if ($hasMediumCover || ($isText && !empty($formats))) {
-//            $book->mediumCover = $this->getBase64Image($mediumCover);
-//        }
-//        if ($hasSmallCover || ($isText && !empty($formats))) {
-//            $book->smallCover = $this->getBase64Image($smallCover);
-//        }
+        $mediumCover = "/opt/project/tmp/medium.cover.jpg";
+//        $mediumCover = "/Users/philippe/codes/gutenberg-rdf-parser/tmp/medium.cover.jpg";
+        $smallCover = "/opt/project/tmp/small.cover.jpg";
+
+        $isText = in_array('Text',$book->categories ?? []);
+        $formats = empty($gutenbergBook->formats) ? [] : array_column($gutenbergBook->formats, null, "fileUrl");
+        $hasMediumCover = false;
+        $hasSmallCover = false;
+        foreach (array_keys($formats) as $keys) {
+            if (preg_match("(cover\.medium)", $keys) !== 0) {
+                $hasMediumCover = true;
+            }
+        }
+        if ($hasMediumCover || ($isText && !empty($formats))) {
+            $book->mediumCover = $this->getBase64Image($mediumCover);
+        }
+        if ($hasSmallCover || ($isText && !empty($formats))) {
+            $book->smallCover = $this->getBase64Image($smallCover);
+        }
         $this->book = $book;
     }
 
