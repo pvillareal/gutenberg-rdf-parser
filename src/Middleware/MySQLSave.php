@@ -2,11 +2,9 @@
 
 namespace Gutenberg\Middleware;
 
-use Doctrine\DBAL\Driver\Middleware;
 use Gutenberg\Adapter\Database\BookAdapter;
 use Gutenberg\Managers\AuthorManager;
 use Gutenberg\Managers\BookManager;
-use Gutenberg\Models\Author;
 use Gutenberg\Models\GutenbergBook;
 
 class MySQLSave
@@ -19,7 +17,7 @@ class MySQLSave
     {
     }
 
-    public function __invoke(GutenbergBook $gutenbergBook) : GutenbergBook
+    public function __invoke(GutenbergBook $gutenbergBook) : void
     {
         $authors = $gutenbergBook->authors ?? [];
         foreach ($authors as $author) {
@@ -29,7 +27,8 @@ class MySQLSave
         $book = new BookAdapter($gutenbergBook);
         $this->bookManager->upsert($book);
         echo "data inserted for: {$gutenbergBook->id}" . PHP_EOL;
-        return $gutenbergBook;
+        $book = null;
+        $gutenbergBook = null;
     }
 
 }

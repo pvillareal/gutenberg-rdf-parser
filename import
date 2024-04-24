@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+folders=$(ls -1 ./cache/epub);
+arr=(${folders//'\n'/});
+
+for i in ${arr[@]}; do
+    php gutenberg -p import -f ${i}
+done

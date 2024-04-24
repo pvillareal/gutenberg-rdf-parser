@@ -14,8 +14,9 @@ include "./bootstrap.php";
 /** @global Container $container */
 
 $start = new DateTime();
-$options = getopt("p:", ["process:"]);
+$options = getopt("p:f:", ["process:"]);
 $process = strtolower($options["p"] ?? "none");
+$folder = strtolower($options["f"] ?? "none");
 
 echo "processing $process" . PHP_EOL;
 if ($process === "all") {
@@ -29,20 +30,28 @@ if ($process === "terms") {
 if ($process === "rdf") {
     $ignored = [56057]; // These files are not parsable at the moment
     $folders = explode(PHP_EOL, shell_exec('ls -1 "$(pwd)/cache/epub"'));
+    $imagick = new Imagick("./tmp/custom_cover.jpg");
     foreach ($folders as $folder) {
         if (!is_numeric($folder) || in_array((int)$folder, $ignored)) {
             continue;
         }
         $book = $container->call(GutenbergRDFParser::class, ["folder" => (int) $folder]);
-        $container->call(CoverParser::class, ["img" => new Imagick("./tmp/custom_cover.jpg"), "book" => $book]);
-        $book = $container->call(MySQLSave::class, ["gutenbergBook" => $book]);
+        $container->call(CoverParser::class, ["img" => $imagick, "book" => $book]);
+        $container->call(MySQLSave::class, ["gutenbergBook" => $book]);
+        gc_collect_cycles();
     }
 }
 
-if ($process === "test") {
-    $book = $container->call(GutenbergRDFParser::class, ["folder" => (int) 60045]);
-//    echo json_encode($book, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
-    $book = $container->call(CoverParser::class, ["img" => new Imagick("./tmp/custom_cover.jpg"), "book" => $book]);
+if ($process === "import") {
+    $ignored = ["56057", "test"];
+    if (in_array($folder, $ignored)) {
+        echo "Did not process {$folder}" . PHP_EOL;
+        exit;
+    }
+    echo "Importing {$folder}" . PHP_EOL;
+    $book = $container->call(GutenbergRDFParser::class, ["folder" => (int) $folder]);
+    $container->call(CoverParser::class, ["img" => new Imagick("./tmp/custom_cover.jpg"), "book" => $book]);
+    $container->call(MySQLSave::class, ["gutenbergBook" => $book]);
 }
 
 if ($process === "download") {
