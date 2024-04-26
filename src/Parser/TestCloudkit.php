@@ -25,7 +25,7 @@ class TestCloudkit
     {
         $manager = $this->manager;
         $service = $this->service;
-        $id = "15070";
+        $id = "1";
         $total = $manager->count();
         while($total > 0) {
             $strId = $id + 1;
