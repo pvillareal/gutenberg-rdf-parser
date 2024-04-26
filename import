@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-folders=$(ls -1 ./cache/epub);
+folders=$(ls -1 ./cache/epub | sort -n);
 arr=(${folders//'\n'/});
 
 for i in ${arr[@]}; do

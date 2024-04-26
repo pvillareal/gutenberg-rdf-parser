@@ -3,6 +3,7 @@
 namespace Gutenberg\Managers;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Exception;
 
 abstract class Manager
 {
@@ -13,13 +14,13 @@ abstract class Manager
     {
     }
 
-    public function upsert(\JsonSerializable $book): int
+    public function upsert(\JsonSerializable $data): int
     {
         $db = $this->connection;
-        $bookFields = implode(",", array_keys($book->jsonSerialize()));
-        $valuesFields = ":" . implode(",:", array_keys($book->jsonSerialize()));
+        $bookFields = implode(",", array_keys($data->jsonSerialize()));
+        $valuesFields = ":" . implode(",:", array_keys($data->jsonSerialize()));
         $updateFields = [];
-        foreach ($book->jsonSerialize() as $field => $value) {
+        foreach ($data->jsonSerialize() as $field => $value) {
             $updateFields[] = "$field = VALUES($field)";
         }
         $updateFields = implode(',', $updateFields);
@@ -28,12 +29,12 @@ abstract class Manager
                 ON DUPLICATE KEY UPDATE {$updateFields}";
         try {
             $stmt = $db->prepare($query);
-            foreach ($book->jsonSerialize() as $field => $value) {
+            foreach ($data->jsonSerialize() as $field => $value) {
                 $data = is_array($value) ? json_encode($value) : $value;
                 $stmt->bindValue($field, $data);
             }
             return $stmt->executeStatement();
-        } catch (\Doctrine\DBAL\Exception $e) {
+        } catch (Exception $e) {
             echo $e->getMessage();
             return 0;
         }

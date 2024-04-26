@@ -2,7 +2,6 @@
 <?php
 
 use DI\Container;
-use Gutenberg\Adapter\Database\BookAdapter;
 use Gutenberg\Middleware\MySQLSave;
 use Gutenberg\Parser\CoverParser;
 use Gutenberg\Parser\GutenbergRDFParser;
@@ -19,6 +18,10 @@ $process = strtolower($options["p"] ?? "none");
 $folder = strtolower($options["f"] ?? "none");
 
 echo "processing $process" . PHP_EOL;
+if ($process === "test") {
+    $container->call(TestCloudkit::class);
+}
+
 if ($process === "all") {
     $container->call(TermsParser::class);
 }
@@ -43,7 +46,7 @@ if ($process === "rdf") {
 }
 
 if ($process === "import") {
-    $ignored = ["56057", "test"];
+    $ignored = ["56057", "90907", "test"];
     if (in_array($folder, $ignored)) {
         echo "Did not process {$folder}" . PHP_EOL;
         exit;
@@ -62,4 +65,4 @@ if ($process === "download") {
 
 $end = new DateTime();
 $diff = $start->diff($end);
-echo PHP_EOL . "Process time: " . $diff->format( '%H:%I:%S');
+echo PHP_EOL . "Process time: " . $diff->format( '%H:%I:%S') . PHP_EOL;
