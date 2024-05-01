@@ -49,8 +49,6 @@ class CoverParser
             }
         }
 
-
-
         $draw->setFont('DejaVu-Sans');
         $y = 68 + 24;
 
@@ -61,9 +59,10 @@ class CoverParser
             $img->annotateImage( $draw, 10, $y, 0, $line);
         }
         $img->annotateImage( $draw, 10, 295, 0, "Project Guttenberg");
-        $img->writeImage("./tmp/{$book->id}.medium.cover.jpg");
+        $img->writeImage("/app/tmp/{$book->id}.medium.cover.jpg");
         $img->cropThumbnailImage(66, 99);
-        $img->writeImage("./tmp/{$book->id}.small.cover.jpg");
+        $img->writeImage("/app/tmp/{$book->id}.small.cover.jpg");
+        $draw->clear();
     }
 
 }

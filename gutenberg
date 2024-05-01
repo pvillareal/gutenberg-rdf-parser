@@ -18,6 +18,11 @@ $process = strtolower($options["p"] ?? "none");
 $folder = strtolower($options["f"] ?? "none");
 
 echo "processing $process" . PHP_EOL;
+
+if ($process === "test") {
+    echo $folder . PHP_EOL;
+}
+
 if ($process === "ckimport") {
     $container->call(TestCloudkit::class);
 }
@@ -31,17 +36,20 @@ if ($process === "terms") {
 }
 
 if ($process === "rdf") {
-    $ignored = [56057]; // These files are not parsable at the moment
-    $folders = explode(PHP_EOL, shell_exec('ls -1 "$(pwd)/cache/epub"'));
-    $imagick = new Imagick("./tmp/custom_cover.jpg");
+    $ignored = [56057, 90907]; // These files are not parsable at the moment
+    $folders = explode(PHP_EOL, shell_exec('ls -1 "$(pwd)/cache/epub" | sort -n'));
+
     foreach ($folders as $folder) {
+        $img = file_get_contents("./tmp/custom_cover.jpg");
+        $imagick = new Imagick();
+        $imagick->readImageBlob($img);
         if (!is_numeric($folder) || in_array((int)$folder, $ignored)) {
             continue;
         }
         $book = $container->call(GutenbergRDFParser::class, ["folder" => (int) $folder]);
         $container->call(CoverParser::class, ["img" => $imagick, "book" => $book]);
         $container->call(MySQLSave::class, ["gutenbergBook" => $book]);
-        gc_collect_cycles();
+        $imagick->clear();
     }
 }
 

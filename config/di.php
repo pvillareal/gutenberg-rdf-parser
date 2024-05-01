@@ -10,8 +10,12 @@ use Psr\Container\ContainerInterface;
 
 return array(
     Connection::class => DI\factory(function (ContainerInterface $c) {
-        $dbParams = $c->get("database");
-        return DriverManager::getConnection($dbParams);
+        static $connection = null;
+        if ($connection === null) {
+            $dbParams = $c->get("database");
+            $connection = DriverManager::getConnection($dbParams);
+        }
+        return $connection;
     }),
     ServerService::class => DI\factory(function (ContainerInterface $c) {
         $env = $c->get('env');

@@ -26,6 +26,7 @@
     "ext-mysqli": "*",
     "phpspec/phpspec": "~7.5",
     "dg/bypass-finals": "*",
-    "ext-imagick": "*"
+    "ext-imagick": "*",
+    "ext-pdo": "*"
   }
 }

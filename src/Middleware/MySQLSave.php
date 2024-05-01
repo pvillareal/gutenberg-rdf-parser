@@ -28,7 +28,6 @@ class MySQLSave
         $this->bookManager->upsert($book);
         echo "data inserted for: {$gutenbergBook->id}" . PHP_EOL;
         $book = null;
-        $gutenbergBook = null;
     }
 
 }

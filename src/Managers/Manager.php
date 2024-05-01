@@ -14,7 +14,7 @@ abstract class Manager
     {
     }
 
-    public function upsert(\JsonSerializable $data): int
+    public function upsert(\JsonSerializable $data, int $batch = 0): int
     {
         $db = $this->connection;
         $bookFields = implode(",", array_keys($data->jsonSerialize()));
