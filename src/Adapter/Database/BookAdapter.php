@@ -2,9 +2,7 @@
 
 namespace Gutenberg\Adapter\Database;
 
-use Gutenberg\CloudKit\Author;
 use Gutenberg\Models\Book;
-use Gutenberg\Models\Compiler;
 use Gutenberg\Models\GutenbergBook;
 
 class BookAdapter implements \JsonSerializable
