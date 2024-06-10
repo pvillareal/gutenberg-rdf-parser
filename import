@@ -4,5 +4,8 @@ folders=$(ls -1 ./cache/epub | sort -n);
 arr=(${folders//'\n'/});
 
 for i in ${arr[@]}; do
-    php gutenberg -p test -f ${i} &
+    php gutenberg -p import -f ${i} &
+    if ! ((i % 30)); then
+        wait
+    fi
 done

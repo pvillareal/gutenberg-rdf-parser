@@ -4,6 +4,7 @@ namespace Gutenberg\Models;
 
 use Gutenberg\Traits\JsonSerialize;
 use JsonSerializable;
+use Symfony\Component\DomCrawler\Form;
 
 class GutenbergBook implements JsonSerializable
 {
@@ -14,6 +15,7 @@ class GutenbergBook implements JsonSerializable
 
     /** @var Author[] $authors */
     public array $authors;
+    /** @var Compiler[] $compilers */
     public array $compilers;
     public array $subjects;
     public array $locc;
@@ -27,6 +29,7 @@ class GutenbergBook implements JsonSerializable
     public array $formats;
     public string $alternativeTitle;
     public string $originalPublication;
+    public string $featureType;
 
     use JsonSerialize;
 
@@ -352,5 +355,33 @@ class GutenbergBook implements JsonSerializable
     {
         $this->originalPublication = $originalPublication;
         return $this;
+    }
+
+    public function getCustomCover() : string
+    {
+
+        /** @var Format $format */
+        foreach ($this->formats as $format) {
+            if (stripos($format->fileUrl, 'cover.medium.jpg') != FALSE) {
+                return $format->fileUrl;
+            }
+        }
+        return "";
+    }
+
+    /**
+     * @return string
+     */
+    public function getFeatureType(): string
+    {
+        return $this->featureType;
+    }
+
+    /**
+     * @param string $featureType
+     */
+    public function setFeatureType(string $featureType): void
+    {
+        $this->featureType = $featureType;
     }
 }

@@ -3,7 +3,10 @@
 
 use DI\Container;
 use Gutenberg\Middleware\MySQLSave;
+use Gutenberg\Parser\BatchList;
+use Gutenberg\Parser\CloudkitImport;
 use Gutenberg\Parser\CoverParser;
+use Gutenberg\Parser\FeatureTypeFields;
 use Gutenberg\Parser\GutenbergRDFParser;
 use Gutenberg\Parser\TermsParser;
 use Gutenberg\Parser\TestCloudkit;
@@ -13,18 +16,24 @@ include "./bootstrap.php";
 /** @global Container $container */
 
 $start = new DateTime();
-$options = getopt("p:f:", ["process:"]);
+$options = getopt("p:f:b:", ["process:"]);
 $process = strtolower($options["p"] ?? "none");
 $folder = strtolower($options["f"] ?? "none");
+$batch = strtolower($options["b"] ?? "none");
+//$start = strtolower($options["s"] ?? "none");
 
 echo "processing $process" . PHP_EOL;
 
-if ($process === "test") {
-    echo $folder . PHP_EOL;
+if ($process === "features") {
+    $container->call(FeatureTypeFields::class, ["featureBookIds" => ['2600', '1727', '345', '11', '64317']]);
 }
 
-if ($process === "ckimport") {
-    $container->call(TestCloudkit::class);
+if ($process === "ckbatches") {
+   $container->call(CloudkitImport::class, ["batch" => (int) $batch]);
+}
+
+if ($process === "batches") {
+    $container->call(BatchList::class);
 }
 
 if ($process === "all") {
@@ -38,15 +47,24 @@ if ($process === "terms") {
 if ($process === "rdf") {
     $ignored = [56057, 90907]; // These files are not parsable at the moment
     $folders = explode(PHP_EOL, shell_exec('ls -1 "$(pwd)/cache/epub" | sort -n'));
-
     foreach ($folders as $folder) {
-        $img = file_get_contents("./tmp/custom_cover.jpg");
-        $imagick = new Imagick();
-        $imagick->readImageBlob($img);
-        if (!is_numeric($folder) || in_array((int)$folder, $ignored)) {
+        if (!is_numeric($folder) || in_array((int)$folder, $ignored) || intval($start) > intval($folder)) {
             continue;
         }
         $book = $container->call(GutenbergRDFParser::class, ["folder" => (int) $folder]);
+        $img = file_get_contents("./tmp/custom_cover.jpg");
+        try {
+        if (!empty($book->getCustomCover())) {
+            if (!$img = @file_get_contents($book->getCustomCover())) {
+                $img = file_get_contents("./tmp/custom_cover.jpg");
+            }
+        }
+
+        } catch (Exception $e) {
+            $img = file_get_contents("./tmp/custom_cover.jpg");
+        }
+        $imagick = new Imagick();
+        $imagick->readImageBlob($img);
         $container->call(CoverParser::class, ["img" => $imagick, "book" => $book]);
         $container->call(MySQLSave::class, ["gutenbergBook" => $book]);
         $imagick->clear();
@@ -61,7 +79,24 @@ if ($process === "import") {
     }
     echo "Importing {$folder}" . PHP_EOL;
     $book = $container->call(GutenbergRDFParser::class, ["folder" => (int) $folder]);
-    $container->call(CoverParser::class, ["img" => new Imagick("./tmp/custom_cover.jpg"), "book" => $book]);
+
+    $img = file_get_contents("./tmp/custom_cover.jpg");
+    $hasCover = false;
+    try {
+        if (!empty($book->getCustomCover())) {
+            $hasCover = true;
+            if (!$img = @file_get_contents($book->getCustomCover())) {
+                $img = file_get_contents("./tmp/custom_cover.jpg");
+                $hasCover = false;
+            }
+        }
+
+    } catch (Exception $e) {
+        $img = file_get_contents("./tmp/custom_cover.jpg");
+    }
+    $imagick = new Imagick();
+    $imagick->readImageBlob($img);
+    $container->call(CoverParser::class, ["img" => $imagick, "book" => $book, "hasCover" => $hasCover]);
     $container->call(MySQLSave::class, ["gutenbergBook" => $book]);
 }
 

@@ -15,14 +15,22 @@ class CoverParser
         
     }
 
-    public function __invoke(Imagick $img, GutenbergBook $book) : void
+    public function __invoke(Imagick $img, GutenbergBook $book, bool $hasCover = false) : void
     {
+        if ($hasCover) {
+            $img->writeImage("/app/tmp/{$book->id}.medium.cover.jpg");
+            $img->cropThumbnailImage(66, 99);
+            $img->writeImage("/app/tmp/{$book->id}.small.cover.jpg");
+            return;
+        }
+
         $draw = new ImagickDraw();
         $draw->setFontSize(10);
 
         $bookCover = new BookCover($book);
 
         $row = 32;
+
         if ($bookCover->hasSubtitle()) {
             $title = $bookCover->getTitle();
             $draw->setFont('DejaVu-Sans-Bold');

@@ -25,6 +25,7 @@ class Book implements \JsonSerializable
     public string $downloads;
     public string $mediumCover;
     public string $smallCover;
+    public string $featureType;
 
     public bool $hasCover;
 

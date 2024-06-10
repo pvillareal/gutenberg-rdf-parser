@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+#echo /dev/stdin
+MAX_BATCH=10
+BATCH=0
+while read line; do
+#  echo "reading: ${line}"
+    if ((BATCH < MAX_BATCH)); then
+        BATCH=$((BATCH+1))
+        php gutenberg -p ckbatches -b ${line} &
+    fi
+    if ((BATCH == MAX_BATCH)); then
+        wait
+        BATCH=0
+    fi
+
+done < /dev/stdin

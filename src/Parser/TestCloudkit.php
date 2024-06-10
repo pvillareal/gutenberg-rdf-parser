@@ -25,7 +25,7 @@ class TestCloudkit
     {
         $manager = $this->manager;
         $service = $this->service;
-        $id = "1";
+        $id = "0";
         $total = $manager->count();
         while($total > 0) {
             $strId = $id + 1;
@@ -33,7 +33,7 @@ class TestCloudkit
             echo "Getting batch $id + 200" . PHP_EOL;
             $operations = new Operations();
             foreach ($result as $datum) {
-                $operation = new Operation(ModifyOperationTypes::FORCE_UPDATE);
+                $operation = new Operation(ModifyOperationTypes::FORCE_REPLACE);
                 /** @var \Gutenberg\Models\Book $book */
                 $book = DatabaseModelMapper::map($datum, new \Gutenberg\Models\Book());
                 $id = $book->id;

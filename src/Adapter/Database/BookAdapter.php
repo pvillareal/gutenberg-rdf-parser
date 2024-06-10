@@ -26,11 +26,13 @@ class BookAdapter implements \JsonSerializable
             }
         }
         foreach ($gutenbergBook->authors as $author) {
-            $book->authorIds[] = $author->id;
+            $book->authorIds[] = $author->name;
         }
         foreach ($gutenbergBook->compilers as $compiler) {
-            $book->compilerIds[] = $compiler->id;
+            $book->compilerIds[] = $compiler->name;
         }
+
+        $book->featureType = $gutenbergBook->featureType ?? null;
 
         $mediumCover = "/app/tmp/{$gutenbergBook->id}.medium.cover.jpg";
         $smallCover = "/app/tmp/{$gutenbergBook->id}.small.cover.jpg";
